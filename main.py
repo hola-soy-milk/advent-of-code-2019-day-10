@@ -1,4 +1,4 @@
-import math
+from fractions import gcd
 map = [
         ["#","#",".","#",".",".","#",".",".","#","#","#",".","#","#","#","#",".",".",".","#","#","#","#","#","#"],
         ["#",".",".","#","#","#","#","#",".",".",".","#","#","#",".","#","#","#",".",".","#",".","#","#","#","."],
@@ -32,14 +32,14 @@ def is_outer_edge(x, y):
     return x == 0 or x == len(map)-1 or y == 0 or y == len(row)-1
 
 def unit_vector(x, y):
-    unit_scalar = int(math.sqrt(pow(x, 2) + pow(y, 2)))
-    if unit_scalar == 0.0:
-        result_x = x
-        result_y = y
+    denom = gcd(abs(x), abs(y))
+    if denom != 0:
+        result_x = x / denom
+        result_y = y / denom
+        return {'x': result_x, 'y': result_y}
     else:
-        result_x = int(x / unit_scalar)
-        result_y = int(y / unit_scalar)
-    return {'x': result_x, 'y': result_y}
+        return {'x': x, 'y': y}
+
 
 
 
@@ -47,22 +47,25 @@ def visible_asteroids(origin_x, origin_y):
     result = 0
     for x, row in enumerate(map):
         for y, location in enumerate(row):
-            if x == origin_x and origin_y:
+            if x == origin_x and y == origin_y:
                 continue
             if is_outer_edge(x, y):
                 travel_vector = unit_vector(x - origin_x, y - origin_y)
-                traveling_x = origin_x
-                traveling_y = origin_y
-                print(f'from {origin_x},{origin_y} to {x}, {y}: {travel_vector}')
+                traveling_x = origin_x + int(travel_vector['x'])
+                traveling_y = origin_y + int(travel_vector['y'])
+                if traveling_x == x and traveling_y == y:
+                    break
                 while(traveling_x >= 0 and traveling_x < len(map) and traveling_y >= 0 and traveling_y < len(row)):
                     if map[traveling_x][traveling_y] == "#":
                         result += 1
                         break
-                    traveling_x += travel_vector['x']
-                    traveling_y += travel_vector['y']
+                    traveling_x += int(travel_vector['x'])
+                    traveling_y += int(travel_vector['y'])
     return result
 
 visibles = []
 for x, row in enumerate(map):
     for y, location in enumerate(row):
-        visibles.append(visible_asteroids(x, y))
+        if location == '#':
+            visibles.append(visible_asteroids(x, y))
+print(max(visibles))
